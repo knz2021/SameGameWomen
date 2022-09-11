@@ -1,0 +1,239 @@
+<html><head>
+    <meta charset="utf-8">
+</head>
+
+<body onload="initw()" class="vsc-initialized">
+    　<input type="button" value="スタート" onclick="buttonStart_click(this.value);">
+    <canvas id="canvas2" width="900" height="550" tabindex="2"></canvas>
+
+    <script>
+        var canvas;
+        var canvas2;
+        var context;
+        var ban = [];
+        var cban = [];
+        var bg;
+        var str_gameover = "";
+        var lx = 0;
+        var ly = 0;
+        var imgr;
+        var imgm;
+        var imga;
+        var imgb;
+        var imgc;
+
+        function initw() {
+            canvas = document.getElementById('canvas2');
+            //context = canvas.getContext('2d');
+            //canvas2 = document.getElementById('canvas2');
+            bg = canvas.getContext('2d');
+
+            canvas.addEventListener('click', mouseClick, false);
+            canvas.addEventListener('mousemove', mouseMove, false);
+            canvas.addEventListener('touchstart', mouseClick);  
+            canvas.addEventListener('touchmove', mouseMove);  
+            canvas.focus();
+
+            for (var i = 0; i < 25; i++) {
+                ban[i] = Array(15);
+                cban[i] = Array(15);
+                for (var f = 0; f < 15; f++) {
+                    ban[i][f] = getRandomInt(1, 6);
+                    cban[i][f] = 0;
+                }
+            }
+
+            imgm = new Image();
+            imgm.src = "./01.png";
+            imgr = new Image();
+            imgr.src = "./02.png";
+            imga = new Image();
+            imga.src = "./03.png";
+            imgb = new Image();
+            imgb.src = "./04.png";
+            imgc = new Image();
+            imgc.src = "./05.png";
+            imgd = new Image();
+            imgd.src = "./06.png";
+
+            imgm.onload = function () {draw();};
+            imgr.onload = function () {draw();};
+            imga.onload = function () {draw();};
+            imgb.onload = function () {draw();};
+            imgc.onload = function () {draw();};
+            imgd.onload = function () {draw();};
+        }
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+        }
+        function mouseClick(e) {
+            var rect = event.target.getBoundingClientRect();
+            x = event.clientX - Math.floor(rect.left);
+            y = event.clientY - Math.floor(rect.top);
+
+            lx = Math.floor(x / 36); ly = Math.floor(y / 36);
+            var cu = 0;
+            for (var x = 0; x < 25; x++) {
+                for (var y = 0; y < 15; y++) {
+                    if (cban[x][y] == 2) cu++;
+                }
+            }
+            if (cu > 1) {
+                for (var x = 0; x < 25; x++) {
+                    for (var y = 0; y < 15; y++) {
+                        if (cban[x][y] == 2) ban[x][y] = 0;
+                    }
+                }
+            }
+            draw();
+            for (var x = 0; x < 25; x++) {
+                for (var y = 0; y < 15; y++) {
+                    cban[x][y] = 0;
+                }
+            }
+            dansage();
+            gyoutume();
+            clearchk();
+            draw();
+        }
+        function mouseMove(e) {
+            for (var x = 0; x < 25; x++) {
+                for (var y = 0; y < 15; y++) {
+                    cban[x][y] = 0;
+                }
+            }
+            var rect = event.target.getBoundingClientRect();
+            x = event.clientX - Math.floor(rect.left);
+            y = event.clientY - Math.floor(rect.top);
+
+            lx = Math.floor(x / 36); ly = Math.floor(y / 36);
+
+            cban[lx][ly] = 1;
+            allserch();
+            draw();
+        }
+        function serch(x, y) {
+            if (x - 1 > -1 && ban[x - 1][y] == ban[x][y] && cban[x - 1][y] == 0) cban[x - 1][y] = 1;
+            if (x + 1 < 25 && ban[x + 1][y] == ban[x][y] && cban[x + 1][y] == 0) cban[x + 1][y] = 1;
+            if (y - 1 > -1 && ban[x][y - 1] == ban[x][y] && cban[x][y - 1] == 0) cban[x][y - 1] = 1;
+            if (y + 1 < 15 && ban[x][y + 1] == ban[x][y] && cban[x][y + 1] == 0) cban[x][y + 1] = 1;
+            cban[x][y] = 2;
+        }
+        function allserch() {
+            var flg = true;
+            while (flg) {
+                starts:
+                for (var x = 0; x < 25; x++) {
+                    for (var y = 0; y < 15; y++) {
+                        if (cban[x][y] == 1 && ban[x][y] > 0) {
+                            serch(x, y);
+                            x = -1; y = 0;
+                            continue starts;
+                        }
+                    }
+                }
+                flg = false;
+            }
+        }
+        function dansage() {
+            var flg = true;
+            while (flg) {
+                startd:
+                for (var x = 0; x < 25; x++) {
+                    for (var y = 0; y < 15; y++) {
+                        if (ban[x][y + 1] == 0 && ban[x][y] != 0) {
+                            ban[x][y + 1] = ban[x][y];
+                            ban[x][y] = 0;
+                            x = -1; y = 0;
+                            continue startd;
+                        }
+                    }
+                }
+                flg = false;
+            }
+        }
+        function gyoutume() {
+            var flg = true;
+            while (flg) {
+                startg:
+                for (var x = 0; x < 25; x++) {
+                    var karachk = true;
+                    for (var y = 0; y < 15; y++) {
+                        if (ban[x][y] != 0) {
+                            karachk = false;
+                        }
+                    }
+                    if (karachk) {
+                        for (var xx = x + 1; xx < 25; xx++) {
+                            for (var yy = 0; yy < 15; yy++) {
+                                ban[xx - 1][yy] = ban[xx][yy];
+                            }
+                        }
+                        for (var yy = 0; yy < 15; yy++) {
+                            ban[24][yy] = -1;
+                        }
+                        x = -1; y = 0;
+                        continue startg;
+                    }
+                }
+                flg = false;
+            }
+        }
+        function clearchk() {
+            var clearflg=true;
+            for (var x = 0; x < 25; x++) {
+                for (var y = 0; y < 15; y++) {
+                    if(ban[x][y]>0)clearflg=false
+                }
+            }
+            if(clearflg)str_gameover = "Clear congratulations!! ";
+        }
+        function buttonStart_click(sender) {
+            str_gameover = " ";
+            for (var x = 0; x < 25; x++) {
+                for (var y = 0; y < 15; y++) {
+                    ban[x][y] = getRandomInt(1, 6);
+                    //ban[x][y] = -1;
+                    cban[x][y] = 0;
+                }
+            }
+            //ban[0][14]=1;ban[1][14]=1;
+            draw();
+        }
+
+        function draw() {
+            // 描画
+            var Width = canvas.width;
+            var Height = canvas.height;
+
+            // 背景
+            bg.fillStyle = 'silver';
+            bg.fillRect(0, 0, Width, Height);
+
+            //駒
+            for (var x = 0; x < 25; x++) {
+                for (var y = 0; y < 15; y++) {
+                    if (ban[x][y] == 1) bg.drawImage(imgm, x * 36, y * 36, 36, 36);
+                    if (ban[x][y] == 2) bg.drawImage(imgr, x * 36, y * 36, 36, 36);
+                    if (ban[x][y] == 3) bg.drawImage(imga, x * 36, y * 36, 36, 36);
+                    if (ban[x][y] == 4) bg.drawImage(imgb, x * 36, y * 36, 36, 36);
+                    if (ban[x][y] == 5) bg.drawImage(imgc, x * 36, y * 36, 36, 36);
+
+                    if (cban[x][y] != 0) {
+                        bg.strokeStyle = 'Red';
+                        bg.strokeRect(x * 36, y * 36, 36, 36);
+                    }
+                }
+            }
+
+            bg.font = " 30px MS UI Gothic";
+            bg.fillStyle = 'Red';
+            bg.fillText(str_gameover, 50, 200);
+        }
+
+    </script>
+
+
+<div id="clearly_next_pages_container" style="margin: 0px; padding: 0px; border: none; position: absolute; width: 5px; height: 5px; top: -10px; left: -10px;"></div></body></html>
